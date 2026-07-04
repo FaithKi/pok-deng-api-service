@@ -202,7 +202,9 @@ function App() {
         )}
       </div>
       <div>
+        <input ref={cutAmountRef}></input>
         <button onClick={onCut}>Cut</button>
+        <input ref={betAmountRef}></input>
         <button onClick={onBet}>Bet</button>
         <button onClick={onDraw}>Draw</button>
         <button onClick={onStay}>Stay</button>

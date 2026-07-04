@@ -1,122 +1,214 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useRef, useEffect } from "react";
+import "./App.css";
+
+type Card = {
+  rank: string;
+  suit: string;
+  value: Number;
+};
+
+type GameState = {
+  game_id: string;
+  state: string;
+  balance: Number;
+  player_hand: Card[];
+  dealer_hand_visible: Card[];
+  player_score: Number;
+  dealer_score: Number;
+  winner: string;
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [gameState, setGameState] = useState<GameState>();
+  const balanceRef = useRef<HTMLInputElement>(null);
+  const cutAmountRef = useRef<HTMLInputElement>(null);
+  const betAmountRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    console.log("gamestate", gameState);
+  }, [gameState]);
+
+  const onStartGame = async () => {
+    if (balanceRef.current && Number(balanceRef.current.value) > 0) {
+      const data = await fetch("http://localhost:8000/game/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          balance: balanceRef.current.value,
+        }),
+      }).then((resp) => resp.json());
+      setGameState(data);
+      console.log("data", data);
+    } else {
+      alert("Invalid Initial Balance");
+    }
+  };
+
+  const onCut = async () => {
+    if (
+      gameState &&
+      cutAmountRef.current &&
+      Number(cutAmountRef.current.value) > 0 &&
+      Number(cutAmountRef.current.value) < 52
+    ) {
+      const data = await fetch(
+        `http://localhost:8000/game/${gameState.game_id}/action`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "cut",
+            amount: cutAmountRef.current.value,
+          }),
+        },
+      ).then((resp) => resp.json());
+      setGameState(data);
+      console.log("data", data);
+    } else {
+      alert("No game or Invalid Cut Amount");
+    }
+  };
+
+  const onBet = async () => {
+    if (
+      gameState &&
+      betAmountRef.current &&
+      Number(betAmountRef.current.value) > 0 &&
+      Number(betAmountRef.current.value) < Number(gameState.balance)
+    ) {
+      const data = await fetch(
+        `http://localhost:8000/game/${gameState.game_id}/action`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "bet",
+            amount: betAmountRef.current.value,
+          }),
+        },
+      ).then((resp) => resp.json());
+      setGameState(data);
+      console.log("data", data);
+    } else {
+      alert("No game or Invalid Cut Amount");
+    }
+  };
+
+  const onDraw = async () => {
+    if (gameState) {
+      const data = await fetch(
+        `http://localhost:8000/game/${gameState.game_id}/action`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "draw",
+          }),
+        },
+      ).then((resp) => resp.json());
+      setGameState(data);
+      console.log("data", data);
+    } else {
+      alert("No game");
+    }
+  };
+
+  const onStay = async () => {
+    if (gameState) {
+      const data = await fetch(
+        `http://localhost:8000/game/${gameState.game_id}/action`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "draw",
+          }),
+        },
+      ).then((resp) => resp.json());
+      setGameState(data);
+      console.log("data", data);
+    } else {
+      alert("No game");
+    }
+  };
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      <div>
+        <span>Set Initial Balance</span>
+        <input type="number" ref={balanceRef}></input>
+        <button onClick={onStartGame}>New Game</button>
+      </div>
+      <div>
+        {gameState ? (
+          <>
+            <span>State</span>
+            <span>{gameState.state}</span>
+            <span>Player's hand</span>
+            <span>
+              {gameState.player_hand.map((card) => (
+                <div>
+                  <div>
+                    <span>rank</span>
+                    <span>{card.rank}</span>
+                  </div>
+                  <div>
+                    <span>suit</span>
+                    <span>{card.suit}</span>
+                  </div>
+                </div>
+              ))}
+            </span>
+            <span>Player's score</span>
+            <span>{String(gameState.player_score)}</span>
+            <span>Dealer's hand</span>
+            <span>
+              {gameState.dealer_hand_visible.map((card) => (
+                <div>
+                  <div>
+                    <span>rank</span>
+                    <span>{card.rank}</span>
+                  </div>
+                  <div>
+                    <span>suit</span>
+                    <span>{card.suit}</span>
+                  </div>
+                </div>
+              ))}
+            </span>
+            <span>Dealer's score</span>
+            <span>{String(gameState.dealer_score)}</span>
+            <span>Game Result</span>
+            <span>
+              {gameState.winner == "Player"
+                ? "You Win"
+                : gameState.winner == "Dealer"
+                  ? "You Lose"
+                  : "Draw"}
+            </span>
+          </>
+        ) : (
+          <div>No Game</div>
+        )}
+      </div>
+      <div>
+        <button onClick={onCut}>Cut</button>
+        <button onClick={onBet}>Bet</button>
+        <button onClick={onDraw}>Draw</button>
+        <button onClick={onStay}>Stay</button>
+      </div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

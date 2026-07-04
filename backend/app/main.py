@@ -1,11 +1,10 @@
 from fastapi import FastAPI
 
-# from app.routes import wallets, transactions
+from app.routes import game
 
 app = FastAPI()
 
-# app.include_router(wallets.router)
-# app.include_router(transactions.router)
+app.include_router(game.router)
 
 @app.get("/")
 def read_root():

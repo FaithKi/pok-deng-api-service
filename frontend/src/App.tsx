@@ -131,7 +131,7 @@ function App() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            action: "draw",
+            action: "stay",
           }),
         },
       ).then((resp) => resp.json());
